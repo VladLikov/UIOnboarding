@@ -52,6 +52,8 @@ final class UIOnboardingButton: UIButton {
 
     private func configure() {
         titleLabel?.numberOfLines = 0
+
+        translatesAutoresizingMaskIntoConstraints = false
         
         accessibilityTraits = .button
         isAccessibilityElement = true
