@@ -5,23 +5,38 @@
 //  Created by Lukman Aščić on 14.02.22.
 //
 
-import UIKit
-
 final class UIOnboardingButton: UIButton {
+    
     weak var delegate: UIOnboardingButtonDelegate?
     private var fontName: String = ""
     
     convenience init(withConfiguration configuration: UIOnboardingButtonConfiguration) {
         self.init(type: .system)
+        
         fontName = configuration.fontName
+        
+        var config: UIButton.Configuration
+        
+        if #available(iOS 26.0, *) {
+            config = .prominentGlass()
+            config.cornerStyle = .capsule
+        } else {
+            config = .tinted()
+            config.cornerStyle = .large
+        }
+        
+        config.title = configuration.title
+        
+        // Цвета (fallback для старых API)
+        config.baseForegroundColor = configuration.titleColor
+        config.baseBackgroundColor = configuration.backgroundColor
+        
+        // Insets (по желанию)
+        config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
+        
+        self.configuration = config
+        
         configureFont()
-        setTitle(configuration.title, for: .normal)
-        
-        #if !targetEnvironment(macCatalyst)
-            setTitleColor(configuration.titleColor, for: .normal)
-            backgroundColor = configuration.backgroundColor
-        #endif
-        
         configure()
     }
     
@@ -34,14 +49,9 @@ final class UIOnboardingButton: UIButton {
     }
 
     private func configure() {
-        layer.cornerRadius = UIScreenType.isiPhoneSE ? 13 : 15
-        layer.cornerCurve = .continuous
         titleLabel?.numberOfLines = 0
         
         accessibilityTraits = .button
-        
-        titleLabel?.adjustsFontForContentSizeCategory = true
-        translatesAutoresizingMaskIntoConstraints = false
         isAccessibilityElement = true
         
         if #available(iOS 13.4, *) {
@@ -62,11 +72,24 @@ protocol UIOnboardingButtonDelegate: AnyObject {
 
 extension UIOnboardingButton {
     func configureFont() {
-        if let customFont = UIFont(name: fontName, size: traitCollection.horizontalSizeClass == .regular ? 19 : 17) {
-            let dynamicCustomFont = UIFontMetrics.default.scaledFont(for: customFont)
-            titleLabel?.font = dynamicCustomFont
+        let fontSize: CGFloat = traitCollection.horizontalSizeClass == .regular ? 19 : 17
+        
+        let baseFont: UIFont
+        
+        if let customFont = UIFont(name: fontName, size: fontSize) {
+            baseFont = customFont
         } else {
-            titleLabel?.font = UIFontMetrics.default.scaledFont(for: .systemFont(ofSize: traitCollection.horizontalSizeClass == .regular ? 19 : 17, weight: .bold))
+            baseFont = .systemFont(ofSize: fontSize, weight: .bold)
         }
+        
+        let scaledFont = UIFontMetrics.default.scaledFont(for: baseFont)
+        
+        var container = AttributeContainer()
+        container.font = scaledFont
+        
+        var updatedConfig = configuration
+        updatedConfig?.attributedTitle = AttributedString(configuration?.title ?? "", attributes: container)
+        
+        configuration = updatedConfig
     }
 }
