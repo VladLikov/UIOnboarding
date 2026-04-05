@@ -29,12 +29,8 @@ final class UIOnboardingButton: UIButton {
         
         config.title = configuration.title
         
-        // Цвета (fallback для старых API)
         config.baseForegroundColor = configuration.titleColor
         config.baseBackgroundColor = configuration.backgroundColor
-        
-        // Insets (по желанию)
-        config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
         
         self.configuration = config
         
