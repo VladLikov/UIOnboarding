@@ -23,7 +23,7 @@ final class UIOnboardingButton: UIButton {
             config = .prominentGlass()
             config.cornerStyle = .capsule
         } else {
-            config = .tinted()
+            config = .filled()
             config.cornerStyle = .large
         }
         
